@@ -16,13 +16,16 @@ add_subdirectory(deps/glfw)
 configure_file(src/config.h.in ${CMAKE_SOURCE_DIR}/include/cvars/config.h IMMEDIATE)
 
 # Build cvars library
-set(GLAD_DIR ${CMAKE_SOURCE_DIR}/deps/glad)
+set(DEP_DIR ${CMAKE_SOURCE_DIR}/deps)
+set(GLAD_DIR ${DEP_DIR}/glad)
 set(GLAD_INCLUDE_DIR ${GLAD_DIR}/include)
 set(GLAD_SRC_DIR ${GLAD_DIR}/src)
-set(GLFW_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/deps/glfw/include)
-set(TINYXML2_DIR ${CMAKE_SOURCE_DIR}/deps/tinyxml2)
+
+set(GLFW_INCLUDE_DIR ${DEP_DIR}/glfw/include)
+set(TINYXML2_DIR ${DEP_DIR}/tinyxml2)
 
 include_directories(
+    ${DEP_DIR}
     ${TINYXML2_DIR}
     ${CMAKE_SOURCE_DIR}/include
     ${GLAD_INCLUDE_DIR}
@@ -37,8 +40,8 @@ add_definitions(-DTIXML_USE_STL)
 
 include_directories(${USER_INC})
 
-add_library(cvars SHARED ${CVAR_SRCS} ${CVAR_HDRS})
-target_link_libraries(cvars ${LINK_LIBS})
+add_library(cvars STATIC ${CVAR_SRCS} ${CVAR_HDRS})
+# target_link_libraries(cvars ${LINK_LIBS})
 # target_link_libraries(cvars glfw)
 set_target_properties(cvars PROPERTIES VERSION "${VERSION}" SOVERSION "${VERSION}")
 

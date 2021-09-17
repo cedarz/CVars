@@ -16,6 +16,7 @@
 
 #include <GLConsole/GLFont.h>
 //#include <GLConsole/GLColor.h>
+#include <GLFW/glfw3.h>
 
 #include <deque>
 #include <string>
@@ -176,12 +177,13 @@ class GLConsole
         void CursorToEndOfLine();
         void ScrollUpPage();
         void ScrollDownPage();
-        void SpecialFunc( int key );
+        //void SpecialFunc( int key );
 
         void PrintAllCVars();
 
         /// Add a character to the command line.
         void KeyboardFunc( unsigned char key );
+		void KeyboardFunc(int key, int scancode, int action, int mods);
 
         /// Clear the current command.
         void ClearCurrentCommand();
@@ -928,9 +930,9 @@ inline void GLConsole::RenderConsole()
 {
     _CheckInit();
     if( m_bConsoleOpen || m_bIsChanging ) {
-        glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_SCISSOR_BIT | GL_TRANSFORM_BIT );
+        /*glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_SCISSOR_BIT | GL_TRANSFORM_BIT );
 
-        glDisable(GL_LIGHTING);
+        glDisable(GL_LIGHTING);*/
 
         //blend function based on source alpha
         glEnable(GL_BLEND);
@@ -941,13 +943,13 @@ inline void GLConsole::RenderConsole()
 
         //reset matrices and switch to ortho view
         glDisable(GL_DEPTH_TEST );
-        glMatrixMode(GL_PROJECTION);
+        /*glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
         glOrtho(0,m_Viewport.width,0,m_Viewport.height,-1,1);
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
-        glLoadIdentity();
+        glLoadIdentity();*/
 
         //set up a scissor region to draw the console in
         GLfloat bottom = m_Viewport.height - _GetConsoleHeight();
@@ -959,30 +961,30 @@ inline void GLConsole::RenderConsole()
         //render transparent background
         glDisable(GL_DEPTH_TEST); //for transparency
         glEnable(GL_BLEND);
-        glColor4f( m_consoleColor.r,
-                m_consoleColor.g,
-                m_consoleColor.b,
-                m_consoleColor.a );
+        //glColor4f( m_consoleColor.r,
+        //        m_consoleColor.g,
+        //        m_consoleColor.b,
+        //        m_consoleColor.a );
 
         GLfloat verts[] = { 0.0f, bottom,
                             (GLfloat)m_Viewport.width, bottom,
                             (GLfloat)m_Viewport.width, (GLfloat)m_Viewport.height,
                             0.0f, (GLfloat)m_Viewport.height };
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer(2, GL_FLOAT, 0, verts);
+        //glEnableClientState(GL_VERTEX_ARRAY);
+        //glVertexPointer(2, GL_FLOAT, 0, verts);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        glDisableClientState(GL_VERTEX_ARRAY);
+        //glDisableClientState(GL_VERTEX_ARRAY);
 
         //draw text
         _RenderText();
 
         //restore old matrices and properties...
-        glMatrixMode(GL_PROJECTION);
+        /*glMatrixMode(GL_PROJECTION);
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
 
-        glPopAttrib();
+        glPopAttrib();*/
     }
 }
 
@@ -1029,7 +1031,7 @@ inline void GLConsole::_RenderText()
         if( _IsCursorOn() ) {
             blink = '_';
         }
-        glColor3f(m_commandColor.r, m_commandColor.g, m_commandColor.b);
+        //glColor3f(m_commandColor.r, m_commandColor.g, m_commandColor.b);
         m_pGLFont->glPrintf( m_nConsoleLeftMargin, lineLoc - m_nScrollPixels,
                 "> " + m_sCurrentCommandBeg );
         int size = m_sCurrentCommandBeg.length();
@@ -1062,17 +1064,17 @@ inline void GLConsole::_RenderText()
                 switch((*it).m_nOptions)
                 {
                     case LINEPROP_FUNCTION:
-                        glColor3f(m_functionColor.r, m_functionColor.g, m_functionColor.b);
+                        //glColor3f(m_functionColor.r, m_functionColor.g, m_functionColor.b);
                         break;
                     case LINEPROP_ERROR:
-                        glColor3f(m_errorColor.r, m_errorColor.g, m_errorColor.b);
+                        //glColor3f(m_errorColor.r, m_errorColor.g, m_errorColor.b);
                         break;
                     case LINEPROP_HELP:
-                        glColor3f(m_helpColor.r, m_helpColor.g, m_helpColor.b);
+                        //glColor3f(m_helpColor.r, m_helpColor.g, m_helpColor.b);
                         break;
                     default:
                         //regular log line...
-                        glColor3f(m_logColor.r, m_logColor.g, m_logColor.b);
+                        //glColor3f(m_logColor.r, m_logColor.g, m_logColor.b);
                         break;
                 }
 
@@ -1200,171 +1202,122 @@ inline void GLConsole::ScrollDownPage()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
- * What to do when certain special keys are pressed
- * such as arrow keys, home, end, page up, page down
- *
- */
-inline void GLConsole::SpecialFunc( int key )
-{
-    if(!IsOpen())
-        return;
-
-    _CheckInit();
-
-    int nGlutModifiers = glutGetModifiers();
-
-    //   unsigned char ckey = key;
-    //   std::cerr << "sf: key: " << ckey << ", " << key << " mod: " << nGlutModifiers << std::endl;
-
-
-    switch(nGlutModifiers)
-    {
-        case GLUT_ACTIVE_SHIFT:
-            switch( key ) {
-                case GLUT_KEY_UP:
-                    ScrollDownLine();
-                    break;
-                case GLUT_KEY_DOWN:
-                    ScrollUpLine();
-                    break;
-                default:
-                    break;
-            }
-            break;
-
-        case GLUT_ACTIVE_CTRL:
-            switch (key) {
-                case GLUT_KEY_LEFT:
-                    CursorToBeginningOfLine();
-                    break;
-                case GLUT_KEY_RIGHT:
-                    CursorToEndOfLine();
-                    break;
-            }
-            break;
-
-        case GLUT_ACTIVE_ALT:
-            switch (key) {
-                case GLUT_KEY_LEFT:
-                    ClearCurrentWord();
-                    break;
-            }
-            break;
-
-        default:
-            switch (key) {
-                case GLUT_KEY_LEFT:
-                    CursorLeft();
-                    break;
-                case GLUT_KEY_RIGHT:
-                    CursorRight();
-                    break;
-                case GLUT_KEY_PAGE_UP:
-                    ScrollDownPage();
-                    break;
-                case GLUT_KEY_PAGE_DOWN:
-                    ScrollUpPage();
-                    break;
-                case GLUT_KEY_UP:
-                    HistoryBack();
-                    break;
-                case GLUT_KEY_DOWN:
-                    HistoryForward();
-                    break;
-                case GLUT_KEY_HOME:
-                    CursorToBeginningOfLine();
-                    break;
-                case GLUT_KEY_END:
-                    CursorToEndOfLine();
-                    break;
-                default:
-                    break;
-            }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
  * Process key presses
  */
-inline void GLConsole::KeyboardFunc( unsigned char key)
+inline void GLConsole::KeyboardFunc(int key, int scancode, int action, int mods)
+// inline void GLConsole::KeyboardFunc( unsigned char key)
 {
     if(!IsOpen())
         return;
 
     _CheckInit();
 
-    int nGlutModifiers = glutGetModifiers();
-    //   int ikey = key;
-    //   std::cerr << "kf: key: " << key << ", " << ikey << " mod: " << nGlutModifiers << std::endl;
+	{
+		if (mods & GLFW_MOD_CONTROL) {
+			//Yay for GLUT. when control is active the key codes change for some but not all keys, and appears not to be documented.
+			//a-z and A-Z are now 1-26 and not 97-122 and 65-90
+			switch (key) {
+			case ('a' - 96):
+				CursorToBeginningOfLine();
+				break;
+			case ('e' - 96):
+				CursorToEndOfLine();
+				break;
+			case('c' - 96):
+				ClearCurrentCommand();
+				break;
+			case('w' - 96):
+				ClearCurrentWord();
+				break;
+			case GLFW_KEY_LEFT:
+				CursorToBeginningOfLine();
+				break;
+			case GLFW_KEY_RIGHT:
+				CursorToEndOfLine();
+				break;
+			
+			default:
+				break;
+			}
+		} else if (mods & GLFW_MOD_ALT) {
+			switch (key) {
+			case GLFW_KEY_LEFT:
+				ClearCurrentWord();
+				break;
+			}
+		}
+		else if (mods & GLFW_MOD_SHIFT) {
+			switch (key) {
+				case GLFW_KEY_UP:
+					ScrollDownLine();
+					break;
+				case GLFW_KEY_DOWN:
+					ScrollUpLine();
+					break;
+				default:
+					break;
+			}
+		}
+		else {
+			switch (key)
+			{
+			case '\r':
+				//user pressed "enter"
+				_ProcessCurrentCommand();
+				m_sCurrentCommandBeg = "";
+				m_sCurrentCommandEnd = "";
+				m_nCommandNum = 0; //reset history
+				m_nScrollPixels = 0; //reset scrolling
+				break;
 
-    switch(nGlutModifiers)
-    {
-        case GLUT_ACTIVE_CTRL:
-            //Yay for GLUT. when control is active the key codes change for some but not all keys, and appears not to be documented.
-            //a-z and A-Z are now 1-26 and not 97-122 and 65-90
-            switch( key ) {
-                case ('a' - 96):
-                    CursorToBeginningOfLine();
-                    break;
-                case ('e' - 96):
-                    CursorToEndOfLine();
-                    break;
-                case('c' - 96):
-                    ClearCurrentCommand();
-                    break;
-                case('w' - 96):
-                    ClearCurrentWord();
-                    break;
-                default:
-                    break;
-            }
-            break;
+			case '\t':
+				//tab complete
+				_TabComplete();
+				break;
 
-        case GLUT_ACTIVE_ALT:
+			case '\b':
+				// backspace
+				if (m_sCurrentCommandBeg.size() > 0) {
+					m_sCurrentCommandBeg = m_sCurrentCommandBeg.substr(0, m_sCurrentCommandBeg.size() - 1);
+				}
+				break;
 
-            break;
-
-        case GLUT_ACTIVE_SHIFT:
-        default:
-            switch(key)
-            {
-                case '\r':
-                    //user pressed "enter"
-                    _ProcessCurrentCommand();
-                    m_sCurrentCommandBeg = "";
-                    m_sCurrentCommandEnd = "";
-                    m_nCommandNum = 0; //reset history
-                    m_nScrollPixels = 0; //reset scrolling
-                    break;
-
-                case '\t':
-                    //tab complete
-                    _TabComplete();
-                    break;
-
-                case '\b':
-                    // backspace
-                    if( m_sCurrentCommandBeg.size() > 0 ) {
-                        m_sCurrentCommandBeg = m_sCurrentCommandBeg.substr(0, m_sCurrentCommandBeg.size() - 1);
-                    }
-                    break;
-
-                case CVAR_DEL_KEY:
-                    // delete
-                    if( m_sCurrentCommandEnd.size() > 0 ) {
-                        m_sCurrentCommandEnd = m_sCurrentCommandEnd.substr(1, m_sCurrentCommandEnd.size() );
-                    }
-                    break;
-#if 0
-            } else if( chr == ' ' && m_sCurrentCommandEnd.size() > 0 ) { // space clear the right bit of the cursor
-                m_sCurrentCommandEnd = "";
-#endif
-                default:
-                m_sCurrentCommandBeg += key;
-                m_nCommandNum = 0; //reset history
-                m_nScrollPixels = 0; //reset scrolling
-            }
+			case CVAR_DEL_KEY:
+				// delete
+				if (m_sCurrentCommandEnd.size() > 0) {
+					m_sCurrentCommandEnd = m_sCurrentCommandEnd.substr(1, m_sCurrentCommandEnd.size());
+				}
+				break;
+			case GLFW_KEY_LEFT:
+				CursorLeft();
+				break;
+			case GLFW_KEY_RIGHT:
+				CursorRight();
+				break;
+			case GLFW_KEY_PAGE_UP:
+				ScrollDownPage();
+				break;
+			case GLFW_KEY_PAGE_DOWN:
+				ScrollUpPage();
+				break;
+			case GLFW_KEY_UP:
+				HistoryBack();
+				break;
+			case GLFW_KEY_DOWN:
+				HistoryForward();
+				break;
+			case GLFW_KEY_HOME:
+				CursorToBeginningOfLine();
+				break;
+			case GLFW_KEY_END:
+				CursorToEndOfLine();
+				break;
+			default:
+				m_sCurrentCommandBeg += key;
+				m_nCommandNum = 0; //reset history
+				m_nScrollPixels = 0; //reset scrolling
+			}
+		}
     }
 }
 
