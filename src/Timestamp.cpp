@@ -11,9 +11,8 @@
 #include <time.h>
 #include <iostream>
 #include <stdio.h>
-#include <cvars/config.h>
 
-#ifdef _WIN_
+#ifdef WIN32
 #    include <windows.h>
 #endif
 
@@ -24,12 +23,12 @@ TimeStamp::TimeStamp()
 	start = 1;
 	overflow = 0;
 
-	#ifdef _WIN_
+	#ifdef WIN32
 	isPaused = false;
 	#endif
 }
 
-#ifndef _WIN_
+#ifndef WIN32
 void TimeStamp::Stamp()
 {
     gettimeofday(&prevTime, &tz);
@@ -42,7 +41,7 @@ void TimeStamp::Stamp()
 }
 #endif
 
-#ifdef _WIN_
+#ifdef WIN32
 void TimeStamp::Stamp()
 {
 	if(isPaused)
@@ -62,7 +61,7 @@ void TimeStamp::Stamp()
 }
 #endif
 
-#ifndef _WIN_
+#ifndef WIN32
 double TimeStamp::TotalElapsed()
 {
 	if(start == 1)
@@ -82,7 +81,7 @@ double TimeStamp::TotalElapsed()
 }
 #endif
 
-#ifdef _WIN_
+#ifdef WIN32
 double TimeStamp::TotalElapsed()
 {
 	if(start == 1)
@@ -101,7 +100,7 @@ double TimeStamp::TotalElapsed()
 }
 #endif
 
-#ifndef _WIN_
+#ifndef WIN32
 //returns very precise time in seconds since last "stamp"
 double TimeStamp::Elapsed() 
 {
@@ -123,7 +122,7 @@ double TimeStamp::Elapsed()
 }
 #endif
 
-#ifdef _WIN_
+#ifdef WIN32
 double TimeStamp::Elapsed() 
 {
 	if(start == 1)
@@ -168,7 +167,7 @@ int TimeStamp::ElapsedFrames(double frameTime, double factor)
   return result;
 }
 
-#ifdef _WIN_
+#ifdef WIN32
 //allow timer to be pauses in between "stamps"
 void TimeStamp::Pause()
 {

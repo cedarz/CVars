@@ -6,7 +6,6 @@
  *
  *******************************************************************/
 
-#include <unistd.h>
 #include <string>
 #include <cstdio>
 #include <cmath>
@@ -50,27 +49,27 @@ void keyfunc( unsigned char key, int px, int py );
 int main (int argc, const char * argv[])
 {
   //Initialise GLUT
-  glutInit(&argc, (char **)argv);
+  /*glutInit(&argc, (char **)argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
   glutInitWindowPosition (300, 50);
   glutInitWindowSize (800, 600);
-  glutCreateWindow("GLConsole Demo");
+  glutCreateWindow("GLConsole Demo");*/
 
-  // standard GL init
-  glShadeModel(GL_SMOOTH);
-  glClearColor(0.0f, 0.0f, 1.0f, 0.5f);
-  glClearDepth(1.0f);
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LEQUAL);
-  glEnable ( GL_COLOR_MATERIAL );
-  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+  //// standard GL init
+  //glShadeModel(GL_SMOOTH);
+  //glClearColor(0.0f, 0.0f, 1.0f, 0.5f);
+  //glClearDepth(1.0f);
+  //glEnable(GL_DEPTH_TEST);
+  //glDepthFunc(GL_LEQUAL);
+  //glEnable ( GL_COLOR_MATERIAL );
+  //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
   //register functions
-  glutReshapeFunc (reshape);
+  /*glutReshapeFunc (reshape);
   glutDisplayFunc (display);
   glutKeyboardFunc (keyfunc);
   glutSpecialFunc (special);
-  glutIdleFunc(idle);
+  glutIdleFunc(idle);*/
 
   ////// How to make some CVars //////
 
@@ -157,7 +156,7 @@ int main (int argc, const char * argv[])
     // print out all the CVars (with optional formatting tags -- PMWiki table tags in this case)
 //    CVarUtils::PrintCVars( "(:cellnr:) ", "", "\n(:cell:) ","" );
 
-    glutMainLoop();
+    //glutMainLoop();
 
     return 0;
 }
@@ -192,24 +191,24 @@ void display()
 
   //set up the scene
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glLoadIdentity();
-  glTranslatef(0,0.0f,-2.0f);
+  //glLoadIdentity();
+  //glTranslatef(0,0.0f,-2.0f);
 
-  //draw the triangle
-  glBegin(GL_TRIANGLES); {
-    glColor3f(1.0f,0.0f,0.0f);
-    glVertex3f( 0.0f, triangleSize, 0.0f);
-    glColor3f(0.0f,triangleSize,0.0f);
-    glVertex3f(-triangleSize,-triangleSize, 0.0f);
-    glColor3f(0.0f,0.0f,triangleSize);
-    glVertex3f( triangleSize,-triangleSize, 0.0f);
-  }
-  glEnd();
+  ////draw the triangle
+  //glBegin(GL_TRIANGLES); {
+  //  glColor3f(1.0f,0.0f,0.0f);
+  //  glVertex3f( 0.0f, triangleSize, 0.0f);
+  //  glColor3f(0.0f,triangleSize,0.0f);
+  //  glVertex3f(-triangleSize,-triangleSize, 0.0f);
+  //  glColor3f(0.0f,0.0f,triangleSize);
+  //  glVertex3f( triangleSize,-triangleSize, 0.0f);
+  //}
+  //glEnd();
 
   //draw the console. always call it last so it is drawn on top of everything
   theConsole.RenderConsole();
 
-  glutSwapBuffers();
+  //glutSwapBuffers();
 }
 
 /**
@@ -220,16 +219,14 @@ void display()
 void reshape (int w, int h)
 {
   glViewport     ( 0, 0, w, h );
-  glMatrixMode   ( GL_PROJECTION );
-  glLoadIdentity ( );
+  
 
-  if ( h == 0 )
+ /* if ( h == 0 )
     gluPerspective ( 80, ( float ) w, 1.0, 5000.0 );
   else
-    gluPerspective ( 80, ( float ) w / ( float ) h, 1.0, 5000.0 );
+    gluPerspective ( 80, ( float ) w / ( float ) h, 1.0, 5000.0 );*/
 
-  glMatrixMode   ( GL_MODELVIEW );
-  glLoadIdentity ( );
+ 
 }
 
 /**
@@ -242,7 +239,7 @@ void idle()
 #else
     usleep( (int)1e4 );
 #endif
-    glutPostRedisplay(); // we have 
+    //glutPostRedisplay(); // we have 
 }
 
 /**
