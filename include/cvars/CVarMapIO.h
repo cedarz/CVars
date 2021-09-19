@@ -11,11 +11,11 @@ namespace CVarUtils {
     // All types you wish to use with CVars must overload << and >>
     // This is a possible overloading for maps
     template<class K, class D>
-        std::ostream &operator<<( std::ostream &stream, std::map<K,D>& mMap ) {
+        std::ostream &operator<<(std::ostream &stream, std::map<K,D>& mMap) {
 
         stream << std::endl;
         stream << CVarUtils::CVarSpc() << "<map>\n";
-        for( typename std::map<K,D>::iterator it = mMap.begin(); it != mMap.end(); ++it ) {
+        for(typename std::map<K,D>::iterator it = mMap.begin(); it != mMap.end(); ++it) {
             CVarUtils::CVarIndent();
             stream << CVarUtils::CVarSpc() << "<Object>\n";
             CVarUtils::CVarIndent();
@@ -34,27 +34,27 @@ namespace CVarUtils {
     }
 
     template<class K, class D>
-        std::istream &operator>>( std::istream &stream, std::map<K,D>& mMap ) {
+        std::istream &operator>>(std::istream &stream, std::map<K,D>& mMap) {
 
         tinyxml2::XMLDocument doc;
         std::string s;
         stream >> s;
         doc.Parse(s.c_str());
-        //doc.Print( stdout );
+        //doc.Print(stdout);
         tinyxml2::XMLNode* pCVarsNode = doc.RootElement();
 
-        if( pCVarsNode == NULL ) {
+        if(pCVarsNode == NULL) {
             std::cerr <<  "ERROR: Could not find a <map> node." << std::endl;
             return stream;
         }
 
-        for( tinyxml2::XMLNode* pNode = pCVarsNode->FirstChild();
+        for(tinyxml2::XMLNode* pNode = pCVarsNode->FirstChild();
              pNode != NULL;
-             pNode = pNode->NextSibling() ) {
+             pNode = pNode->NextSibling()) {
 
-            std::string sObject( pNode->Value() );
+            std::string sObject(pNode->Value());
 
-            if( sObject != "Object" ) {
+            if(sObject != "Object") {
                 std::cerr << "WARNING: got '" << sObject << "' value when expecting 'Object'." << std::endl;
                 continue;
             }
@@ -65,19 +65,19 @@ namespace CVarUtils {
             ////////////////////////////////////////////////////////
             tinyxml2::XMLNode* pChild = pNode->FirstChild();
             ////////////////////////////////////////////////////////
-            if( pChild == NULL ) {
+            if(pChild == NULL) {
                 std::cerr << "ERROR parsing map, could not find first child (Key) of Object." << std::endl;
                 return stream;
             }
             else {
-                if( std::string( pChild->Value() ) != "Key" ) {
+                if(std::string(pChild->Value()) != "Key") {
                     std::cerr << "ERROR parsing key in map, expecting 'Key' node, got "<< pChild->Value() << "." << std::endl;
                     return stream;
                 }
 
                 tinyxml2::XMLNode* pKeyChild = pChild->FirstChild();
 
-                if( pKeyChild == NULL ) {
+                if(pKeyChild == NULL) {
                     std::cerr << "ERROR parsing key value in map (empty Key ?).\n" << std::endl;
                     return stream;
                 }           
@@ -89,19 +89,19 @@ namespace CVarUtils {
             ////////////////////////////////////////////////////////
             pChild = pChild->NextSibling();
             ////////////////////////////////////////////////////////
-            if( pChild == NULL ) {
+            if(pChild == NULL) {
                 std::cerr << "ERROR parsing map, could not find 2nd child (Data) of Object." << std::endl;
                 return stream;
             }
             else {
-                if( std::string( pChild->Value() ) != "Data" ) {
+                if(std::string(pChild->Value()) != "Data") {
                     std::cerr << "ERROR parsing key in map, expecting 'Data' node, got "<< pChild->Value() << "." << std::endl;
                     return stream;
                 }
 
                 tinyxml2::XMLNode* pDataChild = pChild->FirstChild();
 
-                if( pDataChild == NULL ) {
+                if(pDataChild == NULL) {
                     std::cerr << "ERROR parsing Data value in map (empty Data ?).\n" << std::endl;
                     return stream;
                 }

@@ -35,7 +35,7 @@ namespace CVarUtils {
             : obj() {}
             
             template <class Arg1>
-                obj_holder( Arg1 arg1 )
+                obj_holder(Arg1 arg1)
                 : obj(arg1) {}
         };
 
@@ -66,7 +66,7 @@ namespace CVarUtils {
         }
 
         void destroy_all() {
-            for( std::vector<holder*>::size_type ii = 0; ii < owned.size(); ii++ ) {
+            for(std::vector<holder*>::size_type ii = 0; ii < owned.size(); ii++) {
                 delete owned[ ii ];
             }
             owned.clear();
@@ -87,30 +87,30 @@ class Trie
     ~Trie();
     void Init();
     // add string to tree and store data at leaf
-    void         Insert( std::string s, void *data );
+    void         Insert(std::string s, void *data);
     // finds s in the tree and returns the node (may not be a leaf)
     // returns null otherwise
-    TrieNode*    FindSubStr( const std::string& s );
-    std::vector<std::string> FindListSubStr( const std::string& s );
-    TrieNode*    Find( const std::string& s );
-    void*        FindData( const std::string& s );
+    TrieNode*    FindSubStr(const std::string& s);
+    std::vector<std::string> FindListSubStr(const std::string& s);
+    TrieNode*    Find(const std::string& s);
+    void*        FindData(const std::string& s);
 
-    bool         Exists( const std::string& s );
+    bool         Exists(const std::string& s);
 
     TrieNode*    GetRoot();
-    void         SetAcceptedSubstrings( std::vector< std::string > vAcceptedSubstrings );
-    bool         IsNameAcceptable( const std::string& sVarName );
+    void         SetAcceptedSubstrings(std::vector< std::string > vAcceptedSubstrings);
+    bool         IsNameAcceptable(const std::string& sVarName);
     bool         IsVerbose();
-    void         SetVerbose( bool bVerbose );
+    void         SetVerbose(bool bVerbose);
 
     // does an in order traversal starting at node and printing all leaves
     // to a list
-    std::vector<std::string> CollectAllNames( TrieNode* node );
+    std::vector<std::string> CollectAllNames(TrieNode* node);
     // traverse from the supplied node and return a list of all nodes
-    std::vector<TrieNode*>   CollectAllNodes( TrieNode* node );
+    std::vector<TrieNode*>   CollectAllNodes(TrieNode* node);
 
     CVARS_STREAM_TYPE GetStreamType() { return m_StreamType; }
-    void SetStreamType( const CVARS_STREAM_TYPE& streamType ) { m_StreamType = streamType; }
+    void SetStreamType(const CVARS_STREAM_TYPE& streamType) { m_StreamType = streamType; }
 
     // CVar
     int*   m_pVerboseCVarNamePaddingWidth;
@@ -127,8 +127,8 @@ class Trie
     CVARS_STREAM_TYPE m_StreamType;
 };
 
-std::ostream &operator<<(std::ostream &stream, Trie &rTrie );
-std::istream &operator>>(std::istream &stream, Trie &rTrie );
+std::ostream &operator<<(std::ostream &stream, Trie &rTrie);
+std::istream &operator>>(std::istream &stream, Trie &rTrie);
 
 
 #endif

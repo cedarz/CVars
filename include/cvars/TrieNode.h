@@ -27,15 +27,15 @@ class TrieNode
 {
  public:
     TrieNode();
-    TrieNode( TrieNodeType t );
-    TrieNode( std::string s );
-    TrieNode( char c );
+    TrieNode(TrieNodeType t);
+    TrieNode(std::string s);
+    TrieNode(char c);
     ~TrieNode(); //destroy all nodes
  
-    TrieNode*             TraverseInsert( char addchar );
-    TrieNode*             TraverseFind( char addchar );
-    void                  PrintToVector( std::vector<std::string> &vec );
-    void                  PrintNodeToVector( std::vector<TrieNode*> &vec );
+    TrieNode*             TraverseInsert(char addchar);
+    TrieNode*             TraverseFind(char addchar);
+    void                  PrintToVector(std::vector<std::string> &vec);
+    void                  PrintNodeToVector(std::vector<TrieNode*> &vec);
 
     void*                 m_pNodeData;
     std::list<TrieNode*>  m_children;

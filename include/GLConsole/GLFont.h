@@ -57,7 +57,7 @@ class GLFont
 ///
 inline bool GLFontCheckInit(GLFont* pFont = NULL)
 {
-    // make sure glutInit has been called
+    // make sure glfwInit has been called
     if(glfwGetTime() <= 0){
         //fprintf(stderr, "WARNING: GLFontCheckInit failed after 'glutGet(GLUT_ELAPSED_TIME) <= 0' check\n");
         return false;

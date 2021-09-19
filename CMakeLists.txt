@@ -30,6 +30,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${GLAD_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
+    ${DEP_DIR}/glm
 )
 
 file(GLOB CVAR_HDRS "${CMAKE_SOURCE_DIR}/include/cvars/*.h")

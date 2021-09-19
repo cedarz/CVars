@@ -13,6 +13,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <memory>
 #include <cvars/glplatform.h>
 
 //include this header for CVars and GLConsole
@@ -25,7 +26,13 @@
 #include <cvars/CVarMapIO.h>
 
 #include <GLFW/glfw3.h>
+#include <utils/shader.h>
+#include <utils/mesh.h>
 
+namespace {
+	float triangleSize = 1.0;
+	bool triangle_size_changed = false;
+}
 
 // Single global instance so glut can get access
 GLConsole theConsole;  
@@ -36,15 +43,10 @@ using CVarUtils::operator>>;
 using namespace std;
 
 //Function declarations
-void display();
-void reshape (int w, int h);
-void idle();
-void special(int key, int px, int py);
-// void keyfunc(unsigned char key, int px, int py);
-
+void display(const Shader& program);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-
+std::shared_ptr<Mesh> triangle;
 
 /**
  * The Main function
@@ -53,8 +55,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 int main (int argc, const char * argv[]) {
 	// glfw: initialize and configure
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "Console Demo", NULL, NULL);
@@ -72,13 +74,6 @@ int main (int argc, const char * argv[]) {
 	// tell GLFW to capture our mouse
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-
-  //register functions
-  /*glutReshapeFunc (reshape);
-  glutDisplayFunc (display);
-  glutKeyboardFunc (keyfunc);
-  glutSpecialFunc (special);
-  glutIdleFunc(idle);*/
 	glfwSetKeyCallback(window, key_callback);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -87,6 +82,7 @@ int main (int argc, const char * argv[]) {
 		return -1;
 	}
 
+	auto v = glGetString(GL_VERSION);
 
   ////// How to make some CVars //////
 
@@ -130,7 +126,7 @@ int main (int argc, const char * argv[]) {
   try {
     cout << "Nonexistant: " << CVarUtils::GetCVar<int>("nonExistant");
   }
-  catch(CVarUtils::CVarException e ){
+  catch(CVarUtils::CVarException e){
     switch(e) {
       case CVarUtils::CVarNonExistant:
         cout << "CVar does not exist" << endl;
@@ -154,6 +150,26 @@ int main (int argc, const char * argv[]) {
   // serialising/deserialising functions from "CVars/CVarVectorIO.h"
   // obtained using the CVarUtils namespace
   CVarUtils::CreateCVar< std::vector<int> >("stl.vector", std::vector<int>());
+
+	  // This is how you register a CVar with the console, having a CVar
+	// in an inner loop is a bad idea, however.
+	//Hence the try/catch block
+	  try {
+		  //triangleSize is set to the default value of the CVar "triangle.size
+		  //      Use this syntax to make the CVar    CVar name,    Default value,   Help text,
+		  triangleSize = CVarUtils::CreateCVar<float>("triangle.size", 1.0f, "Triangle size value");
+	  }
+	  catch (CVarUtils::CVarException e) {
+		  switch (e) {
+		  case CVarUtils::CVarAlreadyCreated:
+			  //it already exists, so just assign the latest value
+			  triangleSize = CVarUtils::GetCVar<float>("triangle.size");
+			  break;
+		  default:
+			  printf("Unknown exception");
+			  break;
+		}
+	  }
     
 #if 0
     CVarUtils::CreateCVar< std::vector<int> >("stl.vector", std::vector<int>(), true,
@@ -171,11 +187,21 @@ int main (int argc, const char * argv[]) {
 #endif
 
     // print out all the CVars (with optional formatting tags -- PMWiki table tags in this case)
-//    CVarUtils::PrintCVars("(:cellnr:) ", "", "\n(:cell:) ","");
+	//    CVarUtils::PrintCVars("(:cellnr:) ", "", "\n(:cell:) ","");
 
-    //glutMainLoop();
+	std::vector<Vertex> verts{
+		{glm::vec3(0.0f, triangleSize, 0.0f), glm::vec4(1.0, 0.0, 0.0, 1.0)},
+		{glm::vec3(-triangleSize,-triangleSize, 0.0f), glm::vec4(0.0, 1.0, 0.0, 1.0)},
+		{glm::vec3(triangleSize,-triangleSize, 0.0f), glm::vec4(0.0, 0.0, 1.0, 1.0)}
+	};
+	std::vector<unsigned int> index{ 0, 1, 2 };
+	triangle = std::make_shared<Mesh>(verts, index, std::vector<Texture>());
+
+	Shader program("triangle.vs", "triangle.fs");
+
+
 	while (!glfwWindowShouldClose(window)) {
-		display();
+		display(program);
 
 
 		glfwSwapBuffers(window);
@@ -186,76 +212,21 @@ int main (int argc, const char * argv[]) {
     return 0;
 }
 
-/**
- * What to draw each refresh
- * Called by GLUT
- */
-void display()
-{
-  // This is how you register a CVar with the console, having a CVar
-  // in an inner loop is a bad idea, however.
-  //Hence the try/catch block
-  
-  float triangleSize = 1.0;
-  try {
-    //triangleSize is set to the default value of the CVar "triangle.size
-    //      Use this syntax to make the CVar    CVar name,    Default value,   Help text,
-    triangleSize = CVarUtils::CreateCVar<float>("triangle.size", 1.0f, "Triangle size value");
-  }
-  catch(CVarUtils::CVarException e) {
-    switch(e) {
-      case CVarUtils::CVarAlreadyCreated:
-        //it already exists, so just assign the latest value
-        triangleSize = CVarUtils::GetCVar<float>("triangle.size");
-        break;
-      default:
-        printf("Unknown exception");
-      break;
-    }
-  }
-
+void display(const Shader& program) {
   //set up the scene
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glClearColor(0.3, 0.4, 0.5, 1.0);
-  //glLoadIdentity();
-  //glTranslatef(0,0.0f,-2.0f);
-
-  ////draw the triangle
-  //glBegin(GL_TRIANGLES); {
-  //  glColor3f(1.0f,0.0f,0.0f);
-  //  glVertex3f(0.0f, triangleSize, 0.0f);
-  //  glColor3f(0.0f,triangleSize,0.0f);
-  //  glVertex3f(-triangleSize,-triangleSize, 0.0f);
-  //  glColor3f(0.0f,0.0f,triangleSize);
-  //  glVertex3f(triangleSize,-triangleSize, 0.0f);
-  //}
-  //glEnd();
+  glDisable(GL_DEPTH_TEST);
+  triangle->Draw(program);
+  glEnable(GL_DEPTH_TEST);
 
   //draw the console. always call it last so it is drawn on top of everything
   theConsole.RenderConsole();
-
-  //glutSwapBuffers();
-}
-
-/**
- * resize the window to the desired size
- * @param w Window width
- * @param h Window height
- */
-void reshape (int w, int h)
-{
-  glViewport     (0, 0, w, h);
-  
-
- /* if (h == 0)
-    gluPerspective (80, (float) w, 1.0, 5000.0);
-  else
-    gluPerspective (80, (float) w / (float) h, 1.0, 5000.0);*/
-
- 
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	std::cout << "key : " << key << std::endl;
+	if (action != GLFW_PRESS) return;
 	switch (key) {
 
 	case GLFW_KEY_ESCAPE:  //escape
