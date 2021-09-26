@@ -18,6 +18,10 @@
 #include <string.h>
 #include <GLFW/glfw3.h>
 
+#include <utils/shader.h>
+#include <ft2build.h>
+#include <freetype/freetype.h>
+
 
 #define MAX_TEXT_LENGTH 512
 
@@ -32,7 +36,43 @@ class GLFont
             m_nCharWidth = 8;
             m_nCharHeight = 13;
             m_bInitDone = false;
+			Init();
         }
+
+		bool Init() {
+			glGenTextures(1, &tex);
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			text_program = std::make_shared<Shader>("text.vs", "text.fs");
+			std::vector<Vertex> verts{
+				{glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec4(1.0, 0.0, 0.0, 0.6)},
+				{glm::vec3(1.0, -1.0f, 0.0f), glm::vec4(0.0, 1.0, 0.0, 0.6)},
+				{glm::vec3(1.0, 1.0, 0.0f), glm::vec4(0.0, 0.0, 1.0, 0.6)},
+				{glm::vec3(-1.0f, 1.0, 0.0f), glm::vec4(0.0, 0.0, 1.0, 0.6)}
+			};
+			std::vector<unsigned int> index{ 0, 1, 2, 0, 2, 3 };
+			std::vector<Texture> texs{
+				{tex, 0, "tex"}
+			};
+			text_quad = std::make_shared<Mesh>(verts, index, tex);
+
+			if (FT_Init_FreeType(&ft)) {
+				std::cerr << "Could not init freetype library" << std::endl;
+				return false;
+			}
+
+			if (FT_New_Face(ft, "fonts/ProggyClean.ttf", 0, &face)) {
+				std::cerr << "Could not open font" << std::endl;
+				return false;
+			}
+
+			FT_Set_Pixel_Sizes(face, 0, 48);
+		}
         ~GLFont();        
 
         // printf style function take position to print to as well
@@ -51,7 +91,57 @@ class GLFont
         int            m_nNumLists;        // number of display lists
         int            m_nDisplayListBase; // base number for display lists
         bool           m_bInitDone;
+
+private:
+	FT_Library ft;
+	FT_Face face;
+	std::shared_ptr<Shader> text_program;
+	std::shared_ptr<Mesh> text_quad;
+	GLuint tex = 0;
+
+public:
+	void render_text(const char *text, float x, float y, float sx, float sy);
 };
+
+void GLFont::render_text(const char *text, float x, float y, float sx, float sy) {
+	const char *p = text;
+	FT_GlyphSlot g = face->glyph;
+	// https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_01
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	while (*p++) {
+		if (FT_Load_Char(face, *p, FT_LOAD_RENDER)) {
+			continue;
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED,
+			g->bitmap.width, g->bitmap.rows,
+			0, GL_RED, GL_UNSIGNED_BYTE,
+			g->bitmap.buffer
+		);
+
+		float x2 = x + g->bitmap_left * sx;
+		float y2 = -y - g->bitmap_top * sy;
+		float w = g->bitmap.width * sx;
+		float h = g->bitmap.rows * sy;
+
+		std::vector<Vertex> box = {
+			{glm::vec4(x2,     -y2    , 0, 0)},
+			{glm::vec4(x2 + w, -y2    , 1, 0)},
+			{glm::vec4(x2,     -y2 - h, 0, 1)},
+			{glm::vec4(x2 + w, -y2 - h, 1, 1)},
+		};
+
+		//glBufferData(GL_ARRAY_BUFFER, sizeof box, box, GL_DYNAMIC_DRAW);
+		text_quad->updateMesh(box);
+		//glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		text_program->setVec4("color", glm::vec4(1.0, 0.0, 0.0, 0.0));
+
+		x += (g->advance.x / 64) * sx;
+		y += (g->advance.y / 64) * sy;
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///

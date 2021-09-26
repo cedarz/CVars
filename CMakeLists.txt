@@ -24,12 +24,16 @@ set(GLAD_SRC_DIR ${GLAD_DIR}/src)
 set(GLFW_INCLUDE_DIR ${DEP_DIR}/glfw/include)
 set(TINYXML2_DIR ${DEP_DIR}/tinyxml2)
 
+set(FREETYPE_INCLUDE_DIR ${DEP_DIR}/freetype/include)
+set(FREETYPE_LIB_DIR "${DEP_DIR}/freetype/release static/vs2015-2019/win64")
+
 include_directories(
     ${DEP_DIR}
     ${TINYXML2_DIR}
     ${CMAKE_SOURCE_DIR}/include
     ${GLAD_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
+    ${FREETYPE_INCLUDE_DIR}
     ${DEP_DIR}/glm
 )
 
@@ -41,7 +45,7 @@ add_definitions(-DTIXML_USE_STL)
 
 include_directories(${USER_INC})
 
-add_library(cvars STATIC ${CVAR_SRCS} ${CVAR_HDRS})
+add_library(cvars STATIC ${CVAR_SRCS} ${CVAR_HDRS} "${FREETYPE_LIB_DIR}/freetype.lib")
 # target_link_libraries(cvars ${LINK_LIBS})
 # target_link_libraries(cvars glfw)
 set_target_properties(cvars PROPERTIES VERSION "${VERSION}" SOVERSION "${VERSION}")
